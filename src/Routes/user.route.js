@@ -1,17 +1,22 @@
 const express = require("express");
 const router = express.Router();
-const { User } = require("../models/user.model");
+const { User } = require("../Models/user.model");
+const { PlayList } = require("../Models/playlis.model");
 
 router.route("/")
 // Signup
   .post(async (req, res) => {
     try {
       const user = req.body;
-      let NewUser = new User(user);
+      const NewUser = new User(user);
+      await NewUser.save();
+      const NewUserPlaylist = new PlayList()
+      await NewUserPlaylist.save()
+      NewUser.playlists.push(NewUserPlaylist._id)
       await NewUser.save();
       res.json({ status: "success", user: NewUser });
     } catch (error) {
-      res.status(404).json({ status: "failed", message: error.message });
+      res.status(404).json({ status: "failed to signup", message: error.message });
     }
   });
 
