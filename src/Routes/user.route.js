@@ -9,12 +9,10 @@ router.route("/")
     try {
       const user = req.body;
       const NewUser = new User(user);
-      await NewUser.save();
-      const NewUserPlaylist = new PlayList()
+      await NewUser.save()
+      const NewUserPlaylist = new PlayList({userId: NewUser._id})
       await NewUserPlaylist.save()
-      NewUser.playlists.push(NewUserPlaylist._id)
-      await NewUser.save();
-      res.json({ status: "success", user: NewUser });
+      res.json({ status: "Signup successful", user: NewUser, playlist: NewUserPlaylist });
     } catch (error) {
       res.status(404).json({ status: "failed to signup", message: error.message });
     }

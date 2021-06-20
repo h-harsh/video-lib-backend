@@ -3,51 +3,77 @@ const router = express.Router();
 const { User } = require("../Models/user.model");
 const { PlayList } = require("../Models/playlis.model");
 
-// Find user by id and store that user in req
-router.param("userId", async (req, res, next, id) => {
-  try {
-    const user = await User.findById(id);
-    if (!id) {
-      return res.status(404).json({ status: "failed", message: "no user found" });
-    }
-    req.user = user;
-    next();
-  } catch (error) {
-    res.status(404).json({ message: error.message });
-  }
-});
-
 router.route("/:userId")
 // Load playlist data of user after login
-  .get((req, res) => {
-    const currUser = req.user
-    res.json({status: "success", data: user.playlists})
+  .get(async (req, res) => {
+    const {userId} = req.params
+    const userPlaylist = await PlayList.findOne({userId: userId})
+    res.json({status: "successk", data: userPlaylist})
   })
 
 router.route("/:userId/:playlistName")
   // To create a playlist
   .post(async (req, res) => {
     try{
-      const {playlistName} = req.params
-      const currUser = req.user
-      const currUserPlaylist = new PlayList({name: playlistName})
-      await currUserPlaylist.save()
-      currUser.playlists.push(currUserPlaylist._id)
-      await currUser.save();
-      
-      res.json({statuc: "success", message: "playlist added"})
-    }catch(error){
-      res.status(404).json({message: "Failure"})
+      const {userId, playlistName} = req.params
+      const userPlaylist = await PlayList.findOne({userId: userId})
+      userPlaylist.playlists.push({playlistName: playlistName})
+      await userPlaylist.save()
+      res.json({ status: "Playlist Created", data: userPlaylist})
+    } catch(error){
+      res.json({status: "failed to add playlist", message: error.stack})
     }
   })
   // To delete a playlist
-  .delete();
+  .delete(async(req, res) => {
+    try{
+      const {userId, playlistName} = req.params
+      const userPlaylist = await PlayList.updateOne({userId: userId}, 
+        {"$pull" : {"playlists": {"playlistName": playlistName}}})
+        const userPlaylistNow = await PlayList.findOne({userId: userId})
+      res.json({ status: "Playlist Deleted", data: userPlaylistNow})
+    } catch(error){
+      res.json({status: "failed to del playlist", message: error.stack})
+    }
+  });
 
-// router.route("/:userId/:playlistName/video");
-// // Video id will come in body
-//   //To add a video to playlist 
-//   .post()
-//   // To delet a video from playlist
-//   .delete()
+router.route("/:userId/:playlistName/video")
+// Video id will come in body
+//   To add a video to playlist 
+  .post(async(req, res) => {
+    const {userId, playlistName} = req.params
+    const {videoId} = req.body
+    const userPlaylist = await PlayList.findOne({userId: userId})
+    userPlaylist.playlists.map(item => {
+      if(item.playlistName === playlistName){
+       return {...item, videos: item.videos.push(videoId)}
+      }
+      return item
+    })
+    await userPlaylist.save();
+    res.json({status: "success", data: userPlaylist})
+  })
+  // To delet a video from playlist
+  .delete(async(req, res) => {
+    try{
+      const {userId, playlistName} = req.params
+      const {videoId} = req.body
+      
+      const userPlaylist = await PlayList.findOne({userId: userId})
+      console.log(userPlaylist)
+      userPlaylist.playlists.map(item => {
+        if(item.playlistName === playlistName){
+          item.videos.pull(videoId)
+        }
+      })
+      await userPlaylist.save()
+      res.json({status: "success", data: userPlaylist})
+    }catch(error){
+      res.json({message: error.message})
+    }
+  })
 
 module.exports = router;
+
+// userPlaylist.updateOne({"playlists.playlistName": playlistName},
+//           {$pull : {"playlists": {"videos": {$in: [ videoId ]}}}})

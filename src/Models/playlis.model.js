@@ -1,17 +1,15 @@
 const mongoose = require("mongoose");
-// const {Video} = require('./videos.model')
 
 const PlayListSchema = mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   playlists: [
     {
-      name: String,
+      playlistName: String,
       videos: [{ type: mongoose.Schema.Types.ObjectId, ref: "Video" }],
     },
   ],
-});
-const PlayListSchema = mongoose.Schema({
-    name: String,
-    videos: [{ type: mongoose.Schema.Types.ObjectId, ref: "Video" }],
+  likedVideos: [{ type: mongoose.Schema.Types.ObjectId, ref: "Video" }],
+  history: [{ type: mongoose.Schema.Types.ObjectId, ref: "Video" }],
 });
 
 const PlayList = mongoose.model("PlayList", PlayListSchema);

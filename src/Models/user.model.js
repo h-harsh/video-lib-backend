@@ -1,5 +1,4 @@
 const mongoose  = require('mongoose')
-// const PlayList = require('./playlis.model')
 
 const UserSchema = mongoose.Schema({
     name: {
@@ -13,8 +12,7 @@ const UserSchema = mongoose.Schema({
     password: {
         type: String,
         required: [true, "Password ke liye bhi bole kya ab"]
-    },
-    playlists: [{type: mongoose.Schema.Types.ObjectId, ref: 'PlayList'}]
+    }
 })
 
 const User = mongoose.model('User', UserSchema)
