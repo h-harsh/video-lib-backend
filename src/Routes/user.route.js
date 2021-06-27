@@ -39,7 +39,7 @@ router.get("/", async (req, res) => {
 
   bcrypt.compare(password, user.password, function (err, result) {
     if (result) {
-      const token = jwt.sign({ userId: user._id }, secret);
+      const token = jwt.sign({ userId: user._id }, secret, { expiresIn: '24h' });
       res.json({ status: "login success", userId: user._id, token: token });
     } else {
       res.status(401).json({ message: "login failed invalid details entered" });

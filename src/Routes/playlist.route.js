@@ -5,24 +5,37 @@ const { User } = require("../Models/user.model");
 const { PlayList } = require("../Models/playlis.model");
 const app = express();
 
+const secret =
+  "gEf3gs2kMagd2CHDXpEjwGJlbVewlqE7ARhD2UIYUJsM8V9c71E4rYGI0AXIn5J2pAi2TrMQHD7FAJOTtLIYIShHDjZjTwvzHodjwutvbTcFCnksFiCBFpqpQqucxyairN4X3hQbmiuKqJQW9XSeblgU5v2BQrEZs86YhgrGxQtWujl3NMu9NRwa9x9noEY7OnuabuIAYNCmsnGC39iq32nBOPvtA4BP+sVuMKW6Qd6//lSr1pSzYHZ9KMYUDnTDvnXQ3q5uSpCGcRTS3//G/nfUdjxjcbz1z9B2hvL+Oh/RXNI1DeFdwphwP9pbJqICm81l1WUe0H7Vs/6irJEq6w==";
 
-// router.route("/:userId")
-router.route("/:userId")
+
+function authVerify(req, res, next) {
+  const token = req.headers.authorization
+  try{
+    const decoded = jwt.verify(token, secret)
+    req.user = { userId: decoded.userId };
+    return next()
+  } catch(error){
+    console.log(error)
+    return res.status(401).json({ message: "Unauthorised access, please add the token"})
+  }
+}
+
+router.route("/")
   // Load playlist data of user after login
   .get(authVerify, async (req, res) => {
-    // const { userId } = req.params;
-    console.log(req.user)
     const {userId} = req.user
     const userPlaylist = await PlayList.findOne({ userId: userId });
     res.json({ status: "successk", data: userPlaylist });
   });
 
 router
-  .route("/:userId/:playlistName")
+  .route(  "/:playlistName")
   // To create a playlist
-  .post(async (req, res) => {
+  .post(authVerify, async (req, res) => {
     try {
-      const { userId, playlistName } = req.params;
+      const { playlistName } = req.params;
+      const {userId} = req.user
       const userPlaylist = await PlayList.findOne({ userId: userId });
       userPlaylist.playlists.push({ playlistName: playlistName });
       await userPlaylist.save();
@@ -32,9 +45,10 @@ router
     }
   })
   // To delete a playlist
-  .delete(async (req, res) => {
+  .delete(authVerify, async (req, res) => {
     try {
-      const { userId, playlistName } = req.params;
+      const { playlistName } = req.params;
+      const {userId} = req.user
       const userPlaylist = await PlayList.updateOne(
         { userId: userId },
         { $pull: { playlists: { playlistName: playlistName } } }
@@ -42,16 +56,17 @@ router
       const userPlaylistNow = await PlayList.findOne({ userId: userId });
       res.json({ status: "Playlist Deleted", data: userPlaylistNow });
     } catch (error) {
-      res.json({ status: "failed to del playlist", message: error.stack });
+      res.json({ status: "failed to delete playlist", message: error.stack });
     }
   });
 
 router
-  .route("/:userId/:playlistName/video")
+  .route("/:playlistName/video")
   // Video id will come in body
   //   To add a video to playlist
-  .post(async (req, res) => {
-    const { userId, playlistName } = req.params;
+  .post(authVerify, async (req, res) => {
+    const { playlistName } = req.params;
+    const {userId} = req.user
     const { videoId } = req.body;
     const userPlaylist = await PlayList.findOne({ userId: userId });
     userPlaylist.playlists.map((item) => {
@@ -61,12 +76,13 @@ router
       return item;
     });
     await userPlaylist.save();
-    res.json({ status: "success", data: userPlaylist });
+    res.json({ status: "video added successfully", data: userPlaylist });
   })
   // To delet a video from playlist
-  .delete(async (req, res) => {
+  .delete(authVerify, async (req, res) => {
     try {
-      const { userId, playlistName } = req.params;
+      const { playlistName } = req.params;
+      const {userId} = req.user
       const { videoId } = req.body;
 
       const userPlaylist = await PlayList.findOne({ userId: userId });
@@ -77,7 +93,7 @@ router
         }
       });
       await userPlaylist.save();
-      res.json({ status: "success", data: userPlaylist });
+      res.json({ status: "successfuly deleted video", data: userPlaylist });
     } catch (error) {
       res.json({ message: error.message });
     }
