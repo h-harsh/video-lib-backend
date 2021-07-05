@@ -3,7 +3,6 @@ const router = express.Router();
 const jwt = require("jsonwebtoken");
 const { User } = require("../Models/user.model");
 const { PlayList } = require("../Models/playlis.model");
-const app = express();
 
 const secret =
   "gEf3gs2kMagd2CHDXpEjwGJlbVewlqE7ARhD2UIYUJsM8V9c71E4rYGI0AXIn5J2pAi2TrMQHD7FAJOTtLIYIShHDjZjTwvzHodjwutvbTcFCnksFiCBFpqpQqucxyairN4X3hQbmiuKqJQW9XSeblgU5v2BQrEZs86YhgrGxQtWujl3NMu9NRwa9x9noEY7OnuabuIAYNCmsnGC39iq32nBOPvtA4BP+sVuMKW6Qd6//lSr1pSzYHZ9KMYUDnTDvnXQ3q5uSpCGcRTS3//G/nfUdjxjcbz1z9B2hvL+Oh/RXNI1DeFdwphwP9pbJqICm81l1WUe0H7Vs/6irJEq6w==";
@@ -12,10 +11,12 @@ const secret =
 function authVerify(req, res, next) {
   const token = req.headers.authorization
   try{
+    console.log(token, "token")
     const decoded = jwt.verify(token, secret)
     req.user = { userId: decoded.userId };
-    return next()
+     next()
   } catch(error){
+    console.log("Error me aye hai")
     console.log(error)
     return res.status(401).json({ message: "Unauthorised access, please add the token"})
   }
@@ -25,8 +26,15 @@ router.route("/")
   // Load playlist data of user after login
   .get(authVerify, async (req, res) => {
     const {userId} = req.user
-    const userPlaylist = await PlayList.findOne({ userId: userId });
-    res.json({ status: "successk", data: userPlaylist });
+    const userPlaylist = await PlayList.findOne({ userId: userId }).populate({ 
+       path: 'playlists',
+       populate: {
+         path: 'videos',
+         model: 'Videos'
+       } 
+    })
+    
+    res.json({ status: "success", playlistData: userPlaylist });
   });
 
 router
@@ -61,13 +69,12 @@ router
   });
 
 router
-  .route("/:playlistName/video")
-  // Video id will come in body
+  .route("/:playlistName/:videoId")
   //   To add a video to playlist
   .post(authVerify, async (req, res) => {
-    const { playlistName } = req.params;
+    const { playlistName, videoId } = req.params;
     const {userId} = req.user
-    const { videoId } = req.body;
+    // const { videoId } = req.body;
     const userPlaylist = await PlayList.findOne({ userId: userId });
     userPlaylist.playlists.map((item) => {
       if (item.playlistName === playlistName) {
@@ -81,12 +88,10 @@ router
   // To delet a video from playlist
   .delete(authVerify, async (req, res) => {
     try {
-      const { playlistName } = req.params;
+      const { playlistName, videoId } = req.params;
       const {userId} = req.user
-      const { videoId } = req.body;
-
+      // const { videoId } = req.body;
       const userPlaylist = await PlayList.findOne({ userId: userId });
-      console.log(userPlaylist);
       userPlaylist.playlists.map((item) => {
         if (item.playlistName === playlistName) {
           item.videos.pull(videoId);

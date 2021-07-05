@@ -1,22 +1,25 @@
 const express = require('express')
 const {dbConnector} = require('./db/db')
-const bodyParser = require('body-parser')
+// const bodyParser = require('body-parser')
 const cors = require('cors')
 const app = express();
 const port = 8000;
 
-app.use(bodyParser.json())
+// app.use(bodyParser.json())
+app.use(express.json())
 app.use(cors());
 
 const videos = require('./Routes/videos.route')
 const user = require('./Routes/user.route')
 const playlist = require('./Routes/playlist.route')
+const history = require('./Routes/history')
 
 dbConnector();
 
 app.use('/videos', videos)
 app.use('/user', user)
 app.use('/playlist', playlist)
+app.use('/history', history)
 
 app.get('/', (req, res) => {
   res.send('Hello This is my videi library API base url !')
