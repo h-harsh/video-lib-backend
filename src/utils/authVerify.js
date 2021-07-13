@@ -6,12 +6,10 @@ const secret = "gEf3gs2kMagd2CHDXpEjwGJlbVewlqE7ARhD2UIYUJsM8V9c71E4rYGI0AXIn5J2
 function authVerify(req, res, next) {
   const token = req.headers.authorization
   try{
-    console.log(token, "token")
     const decoded = jwt.verify(token, secret)
     req.user = { userId: decoded.userId };
      next()
   } catch(error){
-    console.log("Error me aye hai")
     console.log(error)
     return res.status(401).json({ message: "Unauthorised access, please add the token"})
   }

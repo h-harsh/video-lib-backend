@@ -19,7 +19,7 @@ app.use('/videos', videos)
 app.use('/user', user)
 app.use('/playlist', playlist)
 app.use('/history', history)
-app.use('/likedvideos', likedVideos)
+app.use('/likedVideos', likedVideos)
 
 app.get('/', (req, res) => {
   res.send('Hello This is my videi library API base url !')

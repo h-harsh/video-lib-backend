@@ -9,7 +9,7 @@ const secret = "gEf3gs2kMagd2CHDXpEjwGJlbVewlqE7ARhD2UIYUJsM8V9c71E4rYGI0AXIn5J2
 function authVerify(req, res, next) {
   const token = req.headers.authorization
   try{
-    console.log(token, "token")
+    // console.log(token, "token")
     const decoded = jwt.verify(token, secret)
     req.user = { userId: decoded.userId };
      next()
@@ -20,7 +20,7 @@ function authVerify(req, res, next) {
   }
 }
 
-router.route('')
+router.route('/')
 .get(authVerify, async(req,res) => {
     try{
         const {userId} = req.user
@@ -28,7 +28,7 @@ router.route('')
             path: 'history',
             model: 'Videos'
         })
-        res.json({status: "success", history: userPlaylist})
+        res.json({status: "success", history: userPlaylist.history})
     }catch(error){
         res.json({status: "failed", error: error.message})
     }

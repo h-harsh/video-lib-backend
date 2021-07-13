@@ -5,15 +5,14 @@ const { PlayList } = require("../Models/playlis.model");
 const { User } = require("../Models/user.model");
 const { Videos } = require("../Models/videos.model");
 
-router.route('')
+router.route('/')
 .get(authVerify, async (req, res) => {
   try {
     const { userId } = req.user;
     const userPlaylist = await PlayList.findOne({ userId: userId }).populate({
-      path: "likedVideos",
-      model: "Videos",
+      path: 'likedVideos',
+      model: 'Videos'
     });
-    console.log(userPlaylist)
     res.json({ status: "success", likedVideos: userPlaylist });
   } catch (error) {
     res.status(400).json({ status: "success", error: error.message });
@@ -22,14 +21,14 @@ router.route('')
 
 router.param("videoId", async (req, res, next, id) => {
   try {
-    console.log(id);
+    console.log("videoId", id);
     const videoId = await Videos.findOne({ _id: id });
     if (!videoId) {
       return res.status(400).json({ status: "invalid videoId" });
     }
     req.videoId = videoId._id;
     console.log(videoId._id);
-    next();
+    return next();
   } catch (error) {
     res.status(400).json({ status: "failed", error: error.message });
   }
@@ -37,6 +36,7 @@ router.param("videoId", async (req, res, next, id) => {
 
 router.route("/:videoId")
   .post(authVerify, async (req, res) => {
+    console.log("ji")
     try {
       const { userId } = req.user;
       const videoId = req.videoId;

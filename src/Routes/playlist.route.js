@@ -11,7 +11,7 @@ const secret =
 function authVerify(req, res, next) {
   const token = req.headers.authorization
   try{
-    console.log(token, "token")
+    // console.log(token, "token")
     const decoded = jwt.verify(token, secret)
     req.user = { userId: decoded.userId };
      next()
