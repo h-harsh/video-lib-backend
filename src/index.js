@@ -35,6 +35,4 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, message: "error occured, see the errMessage key for more details", errorMessage: err.message})
 })
 
-app.listen(port, () => {
-  console.log(`listening on port ${port}!`)
-});
+app.listen(port || process.env.PORT , () =>  console.log(`listening on port ${port}!`));
