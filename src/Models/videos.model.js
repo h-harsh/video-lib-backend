@@ -21,5 +21,4 @@ const Videos = mongoose.model('Videos', VideosSchema);
 // console.log(savedProd)
 // }
 
-
 module.exports = {Videos}
